@@ -1,42 +1,32 @@
 import json
+import os
 
-# import requests
+import requests
 
 
 def lambda_handler(event, context):
-    """Sample pure Lambda function
+    print(f"{event=}")
+    print(f"{context=}")
 
-    Parameters
-    ----------
-    event: dict, required
-        API Gateway Lambda Proxy Input Format
+    decoded = json.loads(event)
+    keyword = decoded["keyword"]
 
-        Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
-
-    context: object, required
-        Lambda Context runtime methods and attributes
-
-        Context doc: https://docs.aws.amazon.com/lambda/latest/dg/python-context-object.html
-
-    Returns
-    ------
-    API Gateway Lambda Proxy Output Format: dict
-
-        Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
-    """
-
-    # try:
-    #     ip = requests.get("http://checkip.amazonaws.com/")
-    # except requests.RequestException as e:
-    #     # Send some context about this error to Lambda Logs
-    #     print(e)
-
-    #     raise e
+    result = gourmet_search(keyword)
 
     return {
         "statusCode": 200,
-        "body": json.dumps({
-            "message": "hello world",
-            # "location": ip.text.replace("\n", "")
-        }),
+        "body": json.dumps(result),
     }
+
+GOURMET_SEARCH_URL = "http://webservice.recruit.co.jp/hotpepper/gourmet/v1/"
+
+def gourmet_search(keyword:str) -> dict:
+    api_key = os.environ["GOURMET_SEARCH_API_KEY"]
+    data = {
+        "key": api_key,
+        "keyword": keyword,
+    }
+    resp = requests.post(GOURMET_SEARCH_URL, data=data)
+    if resp.status_code < 200 or resp.status_code >= 300:
+        raise Exception(f"HTTP {resp.status_code}: {resp.text}")
+    return resp.json()
