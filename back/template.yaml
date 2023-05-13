@@ -12,3 +12,6 @@ Resources:
         - x86_64
       FunctionUrlConfig:
         AuthType: NONE
+      Environment:
+        Variables:
+          GOURMET_SEARCH_API_KEY: "{{resolve:secretsmanager:gourmet-search-api-key:SecretString}}"
